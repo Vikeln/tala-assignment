@@ -51,10 +51,10 @@ public class AccountServiceImpl extends ResponseInterfaceImpl implements Account
         if (customerAccount.isPresent()) {
 
             status = initialTransactionChecks(customerAccount.get(), transactionType, amount);
-            if (status.equals(Response.SUCCESS)) {
+            if (status.getCode() == Response.SUCCESS.status().getCode()) {
                 status = transact(customerAccount.get(), transactionType, amount);
-                return ResponseEntity.ok(status);
             }
+            return ResponseEntity.ok(status);
         } else
             status = Response.ACCOUNT_NOT_FOUND.status();
 
@@ -64,10 +64,11 @@ public class AccountServiceImpl extends ResponseInterfaceImpl implements Account
 
     public Status transact(CustomerAccount account, TransactionTypes transactionType, double amount) {
 
+        logger.info("Account response {}",account);
         if (transactionType.equals(TransactionTypes.DEPOSIT))
-            account.setBalance(account.getBalance() - amount);
-        else
             account.setBalance(account.getBalance() + amount);
+        else
+            account.setBalance(account.getBalance() - amount);
 
         account = accountRepo.save(account);
         logger.info("Account response {}",account);
@@ -77,17 +78,21 @@ public class AccountServiceImpl extends ResponseInterfaceImpl implements Account
 
     public Status initialTransactionChecks(CustomerAccount account, TransactionTypes transactionType, double amount) {
 
-        if (transactionType.equals(TransactionTypes.DEPOSIT)) {
+        logger.info(transactionType.name());
+        if (transactionType.name().equalsIgnoreCase(TransactionTypes.DEPOSIT.name())) {
+
+            logger.info(transactionType.name());
 //            check max deposti amount
             if (amount > maxDpositAmount)
                 return Response.EXCEED_MAX_DEP_AMOUNT.status();
 //            check max deposit times
             else if (account.getTransactionsToday() + 1 > defaultAccountTransactions)
-                return Response.EXCEED_MAX_DEPOSITS.status();
+                return Response.EXCEED_MAX_DEPOSIT_TODAYS.status();
 //            check max deposti amount today
             else if ((account.getTotalDepositToday() + amount) > defaultAccountDepositAmount)
                 return Response.EXCEED_MAX_DEPOSITS.status();
-        } else if (transactionType.equals(TransactionTypes.WITHDRAW)) {
+        } else if (transactionType.name().equalsIgnoreCase(TransactionTypes.WITHDRAW.name())) {
+            logger.info(transactionType.name());
 //            max withdrawal for the day = $50K
             if (amount > defaultAccountWithdrawalsMaxAmount)
                 return Response.EXCEED_MAX_WITHDRAWALS.status();
@@ -100,8 +105,11 @@ public class AccountServiceImpl extends ResponseInterfaceImpl implements Account
 //              ■ Cannot withdraw when balance is less than withdrawal amount
             else if ((account.getTotalWithdrawalsToday() + amount) > account.getBalance())
                 return Response.EXCEED_MAX_WITHDRAWALS_TODAY.status();
+        }else {
+            logger.info(transactionType.name());
+            return Response.UNKNOWN_TRANSACTION_TYPE.status();
         }
-        return Response.UNKNOWN_TRANSACTION_TYPE.status();
+        return Response.SUCCESS.status();
     }
 
     @Override

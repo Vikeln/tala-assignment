@@ -6,10 +6,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.Optional;
 
+@Service
 public class Initializer {
     Logger  logger = LoggerFactory.getLogger(Initializer.class);
 
@@ -26,6 +28,11 @@ public class Initializer {
             CustomerAccount customerAccount = new CustomerAccount();
             customerAccount.setAccountNumber(defaultAccountNumber);
             customerAccount.setBalance(0);
+            customerAccount.setDepositToday(0);
+            customerAccount.setTotalDepositToday(0);
+            customerAccount.setTransactionsToday(0);
+            customerAccount.setTotalWithdrawalsToday(0);
+            customerAccount.setWithdrawalsToday(0);
             customerAccount = accountRepo.save(customerAccount);
             logger.info("Account created {}",customerAccount);
         }

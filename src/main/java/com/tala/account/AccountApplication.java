@@ -13,7 +13,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @EnableCaching
 @SpringBootApplication
-@EnableJpaAuditing(auditorAwareRef = "auditorAware")
 public class AccountApplication {
 
 	public static void main(String[] args) {
@@ -29,9 +28,5 @@ public class AccountApplication {
 	}
 
 
-	@Bean
-	AuditorAware<String> auditorAware() {
-		return new AuditorAwareImpl();
-	}
 
 }

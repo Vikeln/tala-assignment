@@ -24,13 +24,14 @@ public class AccountController {
         return accontService.accountBalanceResponse(accountNumber);
     }
 
-    @PostMapping("withdraw")
-    public ResponseEntity withdraw(@RequestBody TransactionBody transactionBody , HttpServletRequest request){
-        return accontService.transact(TransactionTypes.WITHDRAW,transactionBody.getAccountNumber(), transactionBody.getAmount(), request);
+    @PostMapping("/{accountNumber}/withdraw")
+    public ResponseEntity withdraw(@PathVariable String accountNumber,@RequestBody TransactionBody transactionBody , HttpServletRequest request){
+        return accontService.transact(TransactionTypes.WITHDRAW,accountNumber, transactionBody.getAmount(), request);
     }
 
-    @PostMapping("deposit")
-    public ResponseEntity deposit(@RequestBody TransactionBody transactionBody, HttpServletRequest request){
-        return accontService.transact(TransactionTypes.DEPOSIT,transactionBody.getAccountNumber(), transactionBody.getAmount(), request);
+    @PostMapping("/{accountNumber}/deposit")
+    public ResponseEntity deposit(@PathVariable String accountNumber, @RequestBody TransactionBody transactionBody, HttpServletRequest request){
+        return accontService.transact(TransactionTypes.DEPOSIT,accountNumber, transactionBody.getAmount(), request);
     }
+
 }
