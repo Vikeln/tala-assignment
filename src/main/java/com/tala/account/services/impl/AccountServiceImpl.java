@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Optional;
 
 @Service
@@ -45,7 +44,7 @@ public class AccountServiceImpl extends ResponseInterfaceImpl implements Account
     private double defaultAccountWithdrawalsFrequency;
 
     @Override
-    public ResponseEntity transact(TransactionTypes transactionType, String accountNumber, double amount, HttpServletRequest request) {
+    public Status transact(TransactionTypes transactionType, String accountNumber, double amount) {
         Optional<CustomerAccount> customerAccount = accountRepo.findById(accountNumber);
         Status status;
         if (customerAccount.isPresent()) {
@@ -54,21 +53,26 @@ public class AccountServiceImpl extends ResponseInterfaceImpl implements Account
             if (status.getCode() == Response.SUCCESS.status().getCode()) {
                 status = transact(customerAccount.get(), transactionType, amount);
             }
-            return ResponseEntity.ok(status);
+            return status;
         } else
             status = Response.ACCOUNT_NOT_FOUND.status();
 
-        return ResponseEntity.ok(status);
+        return status;
     }
 
 
     public Status transact(CustomerAccount account, TransactionTypes transactionType, double amount) {
 
         logger.info("Account response {}",account);
-        if (transactionType.equals(TransactionTypes.DEPOSIT))
+        if (transactionType.equals(TransactionTypes.DEPOSIT)) {
             account.setBalance(account.getBalance() + amount);
-        else
+            account.setDepositToday(account.getDepositToday() + 1);
+            account.setTotalDepositToday(account.getTotalDepositToday() + amount);
+        } else {
             account.setBalance(account.getBalance() - amount);
+            account.setTotalWithdrawalsToday(account.getTotalWithdrawalsToday() + amount);
+            account.setWithdrawalsToday(account.getWithdrawalsToday() + 1);
+        }
 
         account = accountRepo.save(account);
         logger.info("Account response {}",account);
@@ -78,7 +82,6 @@ public class AccountServiceImpl extends ResponseInterfaceImpl implements Account
 
     public Status initialTransactionChecks(CustomerAccount account, TransactionTypes transactionType, double amount) {
 
-        logger.info(transactionType.name());
         if (transactionType.name().equalsIgnoreCase(TransactionTypes.DEPOSIT.name())) {
 
             logger.info(transactionType.name());
@@ -86,7 +89,7 @@ public class AccountServiceImpl extends ResponseInterfaceImpl implements Account
             if (amount > maxDpositAmount)
                 return Response.EXCEED_MAX_DEP_AMOUNT.status();
 //            check max deposit times
-            else if (account.getTransactionsToday() + 1 > defaultAccountTransactions)
+            else if (account.getDepositToday() == defaultAccountTransactions)
                 return Response.EXCEED_MAX_DEPOSIT_TODAYS.status();
 //            check max deposti amount today
             else if ((account.getTotalDepositToday() + amount) > defaultAccountDepositAmount)
@@ -95,22 +98,23 @@ public class AccountServiceImpl extends ResponseInterfaceImpl implements Account
             logger.info(transactionType.name());
 //            max withdrawal for the day = $50K
             if (amount > defaultAccountWithdrawalsMaxAmount)
-                return Response.EXCEED_MAX_WITHDRAWALS.status();
-//              ■ Max withdrawal per transaction = $20K
-            else if ((account.getWithdrawalsToday() + amount) > defaultAccountWithdrawalsToday)
-                return Response.EXCEED_MAX_WITHDRAWALS_TOTAL_TODAY.status();
+                return Response.AMOUNT_EXCEED_MAX_WITHDRAWAL.status();
 //              ■ Max withdrawal frequency = 3 transactions/day
-            else if ((account.getTotalWithdrawalsToday() + amount) > defaultAccountWithdrawalsFrequency)
-                return Response.EXCEED_MAX_WITHDRAWALS_TODAY.status();
+            else if ((account.getWithdrawalsToday() + 1) > defaultAccountWithdrawalsFrequency)
+                return Response.EXCEED_MAX_WITHDRAWALS_FOR_TODAY.status();
+//              ■ Max withdrawal per transaction = $20K
+            else if (amount > defaultAccountWithdrawalsToday)
+                return Response.EXCEED_MAX_WITHDRAWAL_PER_TRANSACTION.status();
+
 //              ■ Cannot withdraw when balance is less than withdrawal amount
-            else if ((account.getTotalWithdrawalsToday() + amount) > account.getBalance())
-                return Response.EXCEED_MAX_WITHDRAWALS_TODAY.status();
+            else if (amount > account.getBalance())
+                return Response.INSUFFICIENT_BALANCE.status();
         }else {
-            logger.info(transactionType.name());
             return Response.UNKNOWN_TRANSACTION_TYPE.status();
         }
         return Response.SUCCESS.status();
     }
+
 
     @Override
     public ResponseEntity accountBalanceResponse(String byId) {
@@ -118,6 +122,11 @@ public class AccountServiceImpl extends ResponseInterfaceImpl implements Account
         if (account.isPresent())
             return ResponseEntity.ok(mapper.formatCustomerAccount(account.get()));
         return ResponseEntity.badRequest().body(Response.ACCOUNT_NOT_FOUND.status());
+    }
+
+    @Override
+    public ResponseEntity findAll() {
+        return ResponseEntity.ok(accountRepo.findAll().stream().map(ac -> mapper.formatCustomerAccount(ac)));
     }
 
 }

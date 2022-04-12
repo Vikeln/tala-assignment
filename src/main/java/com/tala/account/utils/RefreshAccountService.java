@@ -21,7 +21,6 @@ public class RefreshAccountService {
     private void refreshAccountData(CustomerAccount customerAccount) {
         customerAccount.setDepositToday(0);
         customerAccount.setTotalDepositToday(0);
-        customerAccount.setTransactionsToday(0);
         customerAccount.setTotalWithdrawalsToday(0);
         customerAccount.setWithdrawalsToday(0);
         accountRepo.save(customerAccount);

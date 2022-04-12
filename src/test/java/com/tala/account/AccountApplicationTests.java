@@ -1,7 +1,7 @@
 package com.tala.account;
 
-import com.tala.account.controllers.AccountController;
 import com.tala.account.domain.TransactionTypes;
+import com.tala.account.controllers.AccountController;
 import com.tala.account.domain.models.CustomerAccountBalance;
 import com.tala.account.domain.models.Response;
 import com.tala.account.domain.models.Status;
@@ -53,9 +53,8 @@ class AccountApplicationTests {
     @Test
     void withdraw() throws Exception {
         Status status = Response.SUCCESS.status();
-        ResponseEntity responseEntity = ResponseEntity.ok(status);
 
-        when(service.transact(TransactionTypes.WITHDRAW,defaultAccountNumber,500,null)).thenReturn(responseEntity);
+        when(service.transact(TransactionTypes.WITHDRAW,defaultAccountNumber,500)).thenReturn(status);
 
         this.mockMvc.perform((post("/api/account/{accountNumber}/withdraw",defaultAccountNumber)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -63,24 +62,151 @@ class AccountApplicationTests {
         ))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").exists())
-                .andExpect(jsonPath("$.status.code", equalTo(0)));
+                .andExpect(jsonPath("$.code").exists())
+                .andExpect(jsonPath("$.code", equalTo(status.getCode())));
+    }
+
+    @Test
+    void withdrawTooMuch() throws Exception {
+        Status status = Response.AMOUNT_EXCEED_MAX_WITHDRAWAL.status();
+
+        when(service.transact(TransactionTypes.WITHDRAW,defaultAccountNumber,500)).thenReturn(status);
+
+        this.mockMvc.perform((post("/api/account/{accountNumber}/withdraw",defaultAccountNumber)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"amount\":500,\"accountNumber\":\"" +defaultAccountNumber+ "\"}")
+        ))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").exists())
+                .andExpect(jsonPath("$.code", equalTo(status.getCode())));
+    }
+
+    @Test
+    void withdrawTooMuchPerTransaction() throws Exception {
+        Status status = Response.EXCEED_MAX_WITHDRAWAL_PER_TRANSACTION.status();
+
+        when(service.transact(TransactionTypes.WITHDRAW,defaultAccountNumber,60)).thenReturn(status);
+
+        this.mockMvc.perform((post("/api/account/{accountNumber}/withdraw",defaultAccountNumber)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"amount\":60,\"accountNumber\":\"" +defaultAccountNumber+ "\"}")
+        ))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").exists())
+                .andExpect(jsonPath("$.code", equalTo(status.getCode())));
+    }
+
+    @Test
+    void withdrawTooMuchPerDay() throws Exception {
+        Status status = Response.EXCEED_MAX_WITHDRAWALS_FOR_TODAY.status();
+
+        when(service.transact(TransactionTypes.WITHDRAW,defaultAccountNumber,50)).thenReturn(status);
+
+        this.mockMvc.perform((post("/api/account/{accountNumber}/withdraw",defaultAccountNumber)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"amount\":50,\"accountNumber\":\"" +defaultAccountNumber+ "\"}")
+        ))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").exists())
+                .andExpect(jsonPath("$.code", equalTo(status.getCode())));
+    }
+
+
+    @Test
+    void insufficientBalance() throws Exception {
+        Status status = Response.INSUFFICIENT_BALANCE.status();
+
+        when(service.transact(TransactionTypes.WITHDRAW,defaultAccountNumber,50)).thenReturn(status);
+
+        this.mockMvc.perform((post("/api/account/{accountNumber}/withdraw",defaultAccountNumber)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"amount\":50,\"accountNumber\":\"" +defaultAccountNumber+ "\"}")
+        ))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").exists())
+                .andExpect(jsonPath("$.code", equalTo(status.getCode())));
+    }
+
+    @Test
+    void withdrawFromNonExistingAccount() throws Exception {
+        Status status = Response.ACCOUNT_NOT_FOUND.status();
+
+        when(service.transact(TransactionTypes.WITHDRAW,defaultAccountNumber,30)).thenReturn(status);
+
+        this.mockMvc.perform((post("/api/account/{accountNumber}/withdraw",defaultAccountNumber)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"amount\":30,\"accountNumber\":\"" +defaultAccountNumber+ "\"}")
+        ))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").exists())
+                .andExpect(jsonPath("$.code", equalTo(status.getCode())));
     }
 
     @Test
     void deposit() throws Exception {
         Status status = Response.SUCCESS.status();
-        ResponseEntity responseEntity = ResponseEntity.ok(status);
 
-        when(service.transact(TransactionTypes.DEPOSIT,defaultAccountNumber,500,null)).thenReturn(responseEntity);
+        when(service.transact(TransactionTypes.DEPOSIT,defaultAccountNumber,30)).thenReturn(status);
 
         this.mockMvc.perform((post("/api/account/{accountNumber}/deposit",defaultAccountNumber)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"amount\":500,\"accountNumber\":\"" +defaultAccountNumber+ "\"}")))
+                .content("{\"amount\":30,\"accountNumber\":\"" +defaultAccountNumber+ "\"}")))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").exists())
-                .andExpect(jsonPath("$.status.code", equalTo(0)));
+                .andExpect(jsonPath("$.code").exists())
+                .andExpect(jsonPath("$.code", equalTo(status.getCode())));
+    }
+
+
+    @Test
+    void depositTooMuch() throws Exception {
+        Status status = Response.EXCEED_MAX_DEP_AMOUNT.status();
+
+        when(service.transact(TransactionTypes.DEPOSIT,defaultAccountNumber,50)).thenReturn(status);
+
+        this.mockMvc.perform((post("/api/account/{accountNumber}/deposit",defaultAccountNumber)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"amount\":50,\"accountNumber\":\"" +defaultAccountNumber+ "\"}")))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").exists())
+                .andExpect(jsonPath("$.code", equalTo(status.getCode())));
+    }
+
+
+    @Test
+    void depositTooMuchPerTransaction() throws Exception {
+        Status status = Response.EXCEED_MAX_DEP_AMOUNT.status();
+
+        when(service.transact(TransactionTypes.DEPOSIT,defaultAccountNumber,40)).thenReturn(status);
+
+        this.mockMvc.perform((post("/api/account/{accountNumber}/deposit",defaultAccountNumber)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"amount\":40,\"accountNumber\":\"" +defaultAccountNumber+ "\"}")))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").exists())
+                .andExpect(jsonPath("$.code", equalTo(status.getCode())));
+    }
+
+    @Test
+    void depositTooMuchPerDay() throws Exception {
+        Status status = Response.EXCEED_MAX_DEPOSITS.status();
+
+        when(service.transact(TransactionTypes.DEPOSIT,defaultAccountNumber,150)).thenReturn(status);
+
+        this.mockMvc.perform((post("/api/account/{accountNumber}/deposit",defaultAccountNumber)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"amount\":150,\"accountNumber\":\"" +defaultAccountNumber+ "\"}")))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").exists())
+                .andExpect(jsonPath("$.code", equalTo(status.getCode())));
     }
 
 }
