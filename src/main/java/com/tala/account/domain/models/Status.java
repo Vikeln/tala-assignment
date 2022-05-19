@@ -11,8 +11,8 @@ public class Status {
     private int code;
     private String message;
 
-    public Status(Integer code, String message){
-        this.code=code;
+    public Status(Integer code, String message) {
+        this.code = code;
         this.message = message;
     }
 }

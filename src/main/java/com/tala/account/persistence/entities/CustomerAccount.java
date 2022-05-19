@@ -10,6 +10,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import java.util.Date;
 
 @Data
 @AllArgsConstructor
@@ -28,12 +29,6 @@ public class CustomerAccount extends Auditable {
 
     private double balance;
 
-    private Integer depositToday;
-
-    private double totalDepositToday;
-
-    private Integer withdrawalsToday;
-
-    private double totalWithdrawalsToday;
+    private Date lastTransaction;
 
 }

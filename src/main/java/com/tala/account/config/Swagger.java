@@ -13,7 +13,7 @@ import springfox.documentation.spring.web.plugins.Docket;
 public class Swagger {
 
     private ApiInfo apiInfo() {
-        return new ApiInfoBuilder().title("TALA ACCOUNT REST API").description("TALA ACCOUNT.")
+        return new ApiInfoBuilder().title("ACCOUNT REST API").description("ACCOUNT.")
                 .version("1.0.0")
                 .build();
     }

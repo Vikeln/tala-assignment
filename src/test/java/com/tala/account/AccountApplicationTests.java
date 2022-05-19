@@ -1,7 +1,7 @@
 package com.tala.account;
 
-import com.tala.account.domain.TransactionTypes;
 import com.tala.account.controllers.AccountController;
+import com.tala.account.domain.TransactionTypes;
 import com.tala.account.domain.models.CustomerAccountBalance;
 import com.tala.account.domain.models.Response;
 import com.tala.account.domain.models.Status;
@@ -43,7 +43,7 @@ class AccountApplicationTests {
 
         when(service.accountBalanceResponse(defaultAccountNumber)).thenReturn(responseEntity);
 
-        this.mockMvc.perform((get("/api/account/balance?accountNumber={accountNumber}",defaultAccountNumber)))
+        this.mockMvc.perform((get("/api/account/balance?accountNumber={accountNumber}", defaultAccountNumber)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accountNumber", is(response.getAccountNumber())))
@@ -54,11 +54,13 @@ class AccountApplicationTests {
     void withdraw() throws Exception {
         Status status = Response.SUCCESS.status();
 
-        when(service.transact(TransactionTypes.WITHDRAW,defaultAccountNumber,500)).thenReturn(status);
+        ResponseEntity responseEntity = ResponseEntity.ok(status);
 
-        this.mockMvc.perform((post("/api/account/{accountNumber}/withdraw",defaultAccountNumber)
+        when(service.transact(TransactionTypes.WITHDRAW, defaultAccountNumber, 500)).thenReturn(responseEntity);
+
+        this.mockMvc.perform((post("/api/account/withdraw")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"amount\":500,\"accountNumber\":\"" +defaultAccountNumber+ "\"}")
+                .content("{\"amount\":500,\"accountNumber\":\"" + defaultAccountNumber + "\"}")
         ))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -68,13 +70,14 @@ class AccountApplicationTests {
 
     @Test
     void withdrawTooMuch() throws Exception {
-        Status status = Response.AMOUNT_EXCEED_MAX_WITHDRAWAL.status();
+        Status status = Response.AMOUNT_EXCEED_MAX_WITHDRAWAL_PER_DAY.status();
 
-        when(service.transact(TransactionTypes.WITHDRAW,defaultAccountNumber,500)).thenReturn(status);
+        ResponseEntity responseEntity = ResponseEntity.ok(status);
+        when(service.transact(TransactionTypes.WITHDRAW, defaultAccountNumber, 50000)).thenReturn(responseEntity);
 
-        this.mockMvc.perform((post("/api/account/{accountNumber}/withdraw",defaultAccountNumber)
+        this.mockMvc.perform((post("/api/account/withdraw")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"amount\":500,\"accountNumber\":\"" +defaultAccountNumber+ "\"}")
+                .content("{\"amount\":50000,\"accountNumber\":\"" + defaultAccountNumber + "\"}")
         ))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -85,12 +88,13 @@ class AccountApplicationTests {
     @Test
     void withdrawTooMuchPerTransaction() throws Exception {
         Status status = Response.EXCEED_MAX_WITHDRAWAL_PER_TRANSACTION.status();
+        ResponseEntity responseEntity = ResponseEntity.ok(status);
 
-        when(service.transact(TransactionTypes.WITHDRAW,defaultAccountNumber,60)).thenReturn(status);
+        when(service.transact(TransactionTypes.WITHDRAW, defaultAccountNumber, 60000)).thenReturn(responseEntity);
 
-        this.mockMvc.perform((post("/api/account/{accountNumber}/withdraw",defaultAccountNumber)
+        this.mockMvc.perform((post("/api/account/withdraw")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"amount\":60,\"accountNumber\":\"" +defaultAccountNumber+ "\"}")
+                .content("{\"amount\":60000,\"accountNumber\":\"" + defaultAccountNumber + "\"}")
         ))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -101,12 +105,13 @@ class AccountApplicationTests {
     @Test
     void withdrawTooMuchPerDay() throws Exception {
         Status status = Response.EXCEED_MAX_WITHDRAWALS_FOR_TODAY.status();
+        ResponseEntity responseEntity = ResponseEntity.ok(status);
 
-        when(service.transact(TransactionTypes.WITHDRAW,defaultAccountNumber,50)).thenReturn(status);
+        when(service.transact(TransactionTypes.WITHDRAW, defaultAccountNumber, 50000)).thenReturn(responseEntity);
 
-        this.mockMvc.perform((post("/api/account/{accountNumber}/withdraw",defaultAccountNumber)
+        this.mockMvc.perform((post("/api/account/withdraw")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"amount\":50,\"accountNumber\":\"" +defaultAccountNumber+ "\"}")
+                .content("{\"amount\":50000,\"accountNumber\":\"" + defaultAccountNumber + "\"}")
         ))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -114,16 +119,16 @@ class AccountApplicationTests {
                 .andExpect(jsonPath("$.code", equalTo(status.getCode())));
     }
 
-
     @Test
     void insufficientBalance() throws Exception {
         Status status = Response.INSUFFICIENT_BALANCE.status();
+        ResponseEntity responseEntity = ResponseEntity.ok(status);
 
-        when(service.transact(TransactionTypes.WITHDRAW,defaultAccountNumber,50)).thenReturn(status);
+        when(service.transact(TransactionTypes.WITHDRAW, defaultAccountNumber, 50000)).thenReturn(responseEntity);
 
-        this.mockMvc.perform((post("/api/account/{accountNumber}/withdraw",defaultAccountNumber)
+        this.mockMvc.perform((post("/api/account/withdraw")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"amount\":50,\"accountNumber\":\"" +defaultAccountNumber+ "\"}")
+                .content("{\"amount\":50000,\"accountNumber\":\"" + defaultAccountNumber + "\"}")
         ))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -134,12 +139,13 @@ class AccountApplicationTests {
     @Test
     void withdrawFromNonExistingAccount() throws Exception {
         Status status = Response.ACCOUNT_NOT_FOUND.status();
+        ResponseEntity responseEntity = ResponseEntity.ok(status);
 
-        when(service.transact(TransactionTypes.WITHDRAW,defaultAccountNumber,30)).thenReturn(status);
+        when(service.transact(TransactionTypes.WITHDRAW, defaultAccountNumber, 30000)).thenReturn(responseEntity);
 
-        this.mockMvc.perform((post("/api/account/{accountNumber}/withdraw",defaultAccountNumber)
+        this.mockMvc.perform((post("/api/account/withdraw")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"amount\":30,\"accountNumber\":\"" +defaultAccountNumber+ "\"}")
+                .content("{\"amount\":30000,\"accountNumber\":\"" + defaultAccountNumber + "\"}")
         ))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -150,44 +156,45 @@ class AccountApplicationTests {
     @Test
     void deposit() throws Exception {
         Status status = Response.SUCCESS.status();
+        ResponseEntity responseEntity = ResponseEntity.ok(status);
 
-        when(service.transact(TransactionTypes.DEPOSIT,defaultAccountNumber,30)).thenReturn(status);
+        when(service.transact(TransactionTypes.DEPOSIT, defaultAccountNumber, 30)).thenReturn(responseEntity);
 
-        this.mockMvc.perform((post("/api/account/{accountNumber}/deposit",defaultAccountNumber)
+        this.mockMvc.perform((post("/api/account/deposit")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"amount\":30,\"accountNumber\":\"" +defaultAccountNumber+ "\"}")))
+                .content("{\"amount\":30,\"accountNumber\":\"" + defaultAccountNumber + "\"}")))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").exists())
                 .andExpect(jsonPath("$.code", equalTo(status.getCode())));
     }
-
 
     @Test
     void depositTooMuch() throws Exception {
-        Status status = Response.EXCEED_MAX_DEP_AMOUNT.status();
+        Status status = Response.EXCEED_MAX_DEPOSIT_AMOUNT_PER_TRANSACTION.status();
+        ResponseEntity responseEntity = ResponseEntity.ok(status);
 
-        when(service.transact(TransactionTypes.DEPOSIT,defaultAccountNumber,50)).thenReturn(status);
+        when(service.transact(TransactionTypes.DEPOSIT, defaultAccountNumber, 50000)).thenReturn(responseEntity);
 
-        this.mockMvc.perform((post("/api/account/{accountNumber}/deposit",defaultAccountNumber)
+        this.mockMvc.perform((post("/api/account/deposit")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"amount\":50,\"accountNumber\":\"" +defaultAccountNumber+ "\"}")))
+                .content("{\"amount\":50000,\"accountNumber\":\"" + defaultAccountNumber + "\"}")))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").exists())
                 .andExpect(jsonPath("$.code", equalTo(status.getCode())));
     }
 
-
     @Test
     void depositTooMuchPerTransaction() throws Exception {
-        Status status = Response.EXCEED_MAX_DEP_AMOUNT.status();
+        Status status = Response.EXCEED_MAX_DEPOSIT_AMOUNT_PER_TRANSACTION.status();
+        ResponseEntity responseEntity = ResponseEntity.ok(status);
 
-        when(service.transact(TransactionTypes.DEPOSIT,defaultAccountNumber,40)).thenReturn(status);
+        when(service.transact(TransactionTypes.DEPOSIT, defaultAccountNumber, 40000)).thenReturn(responseEntity);
 
-        this.mockMvc.perform((post("/api/account/{accountNumber}/deposit",defaultAccountNumber)
+        this.mockMvc.perform((post("/api/account/deposit")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"amount\":40,\"accountNumber\":\"" +defaultAccountNumber+ "\"}")))
+                .content("{\"amount\":40000,\"accountNumber\":\"" + defaultAccountNumber + "\"}")))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").exists())
@@ -197,12 +204,13 @@ class AccountApplicationTests {
     @Test
     void depositTooMuchPerDay() throws Exception {
         Status status = Response.EXCEED_MAX_DEPOSITS.status();
+        ResponseEntity responseEntity = ResponseEntity.ok(status);
 
-        when(service.transact(TransactionTypes.DEPOSIT,defaultAccountNumber,150)).thenReturn(status);
+        when(service.transact(TransactionTypes.DEPOSIT, defaultAccountNumber, 150000)).thenReturn(responseEntity);
 
-        this.mockMvc.perform((post("/api/account/{accountNumber}/deposit",defaultAccountNumber)
+        this.mockMvc.perform((post("/api/account/deposit")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"amount\":150,\"accountNumber\":\"" +defaultAccountNumber+ "\"}")))
+                .content("{\"amount\":150000,\"accountNumber\":\"" + defaultAccountNumber + "\"}")))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").exists())
