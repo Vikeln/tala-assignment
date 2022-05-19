@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+
 @RestController
 @RequestMapping("api/account")
 public class AccountController {
@@ -30,13 +32,13 @@ public class AccountController {
 
     @ResponseStatus(HttpStatus.OK)
     @PostMapping("/withdraw")
-    public ResponseEntity<Status> withdraw(@RequestBody TransactionBody transactionBody) {
+    public ResponseEntity<Status> withdraw(@Valid @RequestBody TransactionBody transactionBody) {
         return accontService.transact(TransactionTypes.WITHDRAW, transactionBody.getAccountNumber(), transactionBody.getAmount());
     }
 
     @ResponseStatus(HttpStatus.OK)
     @PostMapping("/deposit")
-    public ResponseEntity<Status> deposit(@RequestBody TransactionBody transactionBody) {
+    public ResponseEntity<Status> deposit(@Valid @RequestBody TransactionBody transactionBody) {
         return accontService.transact(TransactionTypes.DEPOSIT, transactionBody.getAccountNumber(), transactionBody.getAmount());
     }
 

@@ -4,7 +4,7 @@ package com.tala.account.domain.models;
 public enum Response {
 
     SUCCESS(0, "Success"),
-    ACCOUNT_NOT_FOUND(1, "ACCOUNT does not exist by id"),
+    ACCOUNT_NOT_FOUND(1, "ACCOUNT does not exist"),
 
     EXCEED_MAX_DEPOSIT_AMOUNT_PER_TRANSACTION(2, "Exceeded Maximum Deposit Amount Per Transaction"),
     EXCEED_MAX_DEPOSIT_AMOUNT_PER_DAY(3, "Exceeded Maximum Deposit Amount Per Day"),
