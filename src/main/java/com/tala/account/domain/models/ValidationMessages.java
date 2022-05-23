@@ -9,6 +9,7 @@ import java.util.List;
 @Data
 
 public class ValidationMessages {
-    List<ValidationMessage> errors;
+
     private String message;
+    private List<ValidationMessage> errors;
 }

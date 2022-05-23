@@ -15,16 +15,16 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.mockito.Mockito.when;
+import static org.hamcrest.Matchers.*;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest({AccountController.class})
+
+@WebMvcTest({AccountController.class}) // use @WebMvcTest annotation for testing the web layer of your Spring Boot application. Will only instantiate AccountController in your web layer.
 class AccountApplicationTests {
 
     @Value("${default.account.number}")
@@ -48,6 +48,11 @@ class AccountApplicationTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accountNumber", is(response.getAccountNumber())))
                 .andExpect(jsonPath("$.balance", is(response.getBalance())));
+
+//        Verify that the accountBalanceResponse() method of the AccountService interface is called only once.
+        verify(service, times(1)).accountBalanceResponse(defaultAccountNumber);
+//        Ensure that no other methods of our mock object are called during the test.
+        verifyNoMoreInteractions(service);
     }
 
     @Test
@@ -66,6 +71,10 @@ class AccountApplicationTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").exists())
                 .andExpect(jsonPath("$.code", equalTo(status.getCode())));
+//        Verify that the transact() method of the AccountService interface is called only once.
+        verify(service, times(1)).transact(TransactionTypes.WITHDRAW, defaultAccountNumber, 500);
+//        Ensure that no other methods of our mock object are called during the test.
+        verifyNoMoreInteractions(service);
     }
 
     @Test
@@ -83,6 +92,10 @@ class AccountApplicationTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").exists())
                 .andExpect(jsonPath("$.code", equalTo(status.getCode())));
+//        Verify that the transact() method of the AccountService interface is called only once.
+        verify(service, times(1)).transact(TransactionTypes.WITHDRAW, defaultAccountNumber, 50000);
+//        Ensure that no other methods of our mock object are called during the test.
+        verifyNoMoreInteractions(service);
     }
 
     @Test
@@ -100,6 +113,10 @@ class AccountApplicationTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").exists())
                 .andExpect(jsonPath("$.code", equalTo(status.getCode())));
+//        Verify that the transact() method of the AccountService interface is called only once.
+        verify(service, times(1)).transact(TransactionTypes.WITHDRAW, defaultAccountNumber, 60000);
+//        Ensure that no other methods of our mock object are called during the test.
+        verifyNoMoreInteractions(service);
     }
 
     @Test
@@ -117,6 +134,10 @@ class AccountApplicationTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").exists())
                 .andExpect(jsonPath("$.code", equalTo(status.getCode())));
+//        Verify that the transact() method of the AccountService interface is called only once.
+        verify(service, times(1)).transact(TransactionTypes.WITHDRAW, defaultAccountNumber, 50000);
+//        Ensure that no other methods of our mock object are called during the test.
+        verifyNoMoreInteractions(service);
     }
 
     @Test
@@ -134,6 +155,10 @@ class AccountApplicationTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").exists())
                 .andExpect(jsonPath("$.code", equalTo(status.getCode())));
+//        Verify that the transact() method of the AccountService interface is called only once.
+        verify(service, times(1)).transact(TransactionTypes.WITHDRAW, defaultAccountNumber, 50000);
+//        Ensure that no other methods of our mock object are called during the test.
+        verifyNoMoreInteractions(service);
     }
 
     @Test
@@ -151,6 +176,11 @@ class AccountApplicationTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").exists())
                 .andExpect(jsonPath("$.code", equalTo(status.getCode())));
+
+//        Verify that the transact() method of the AccountService interface is called only once.
+        verify(service, times(1)).transact(TransactionTypes.WITHDRAW, defaultAccountNumber, 30000);
+//        Ensure that no other methods of our mock object are called during the test.
+        verifyNoMoreInteractions(service);
     }
 
     @Test
@@ -167,6 +197,11 @@ class AccountApplicationTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").exists())
                 .andExpect(jsonPath("$.code", equalTo(status.getCode())));
+
+//        Verify that the transact() method of the AccountService interface is called only once.
+        verify(service, times(1)).transact(TransactionTypes.DEPOSIT, defaultAccountNumber, 30);
+//        Ensure that no other methods of our mock object are called during the test.
+        verifyNoMoreInteractions(service);
     }
 
     @Test
@@ -183,6 +218,11 @@ class AccountApplicationTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").exists())
                 .andExpect(jsonPath("$.code", equalTo(status.getCode())));
+
+//        Verify that the transact() method of the AccountService interface is called only once.
+        verify(service, times(1)).transact(TransactionTypes.DEPOSIT, defaultAccountNumber, 50000);
+//        Ensure that no other methods of our mock object are called during the test.
+        verifyNoMoreInteractions(service);
     }
 
     @Test
@@ -199,6 +239,11 @@ class AccountApplicationTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").exists())
                 .andExpect(jsonPath("$.code", equalTo(status.getCode())));
+
+//        Verify that the transact() method of the AccountService interface is called only once.
+        verify(service, times(1)).transact(TransactionTypes.DEPOSIT, defaultAccountNumber, 40000);
+//        Ensure that no other methods of our mock object are called during the test.
+        verifyNoMoreInteractions(service);
     }
 
     @Test
@@ -215,6 +260,41 @@ class AccountApplicationTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").exists())
                 .andExpect(jsonPath("$.code", equalTo(status.getCode())));
+
+//        Verify that the transact() method of the AccountService interface is called only once.
+        verify(service, times(1)).transact(TransactionTypes.DEPOSIT, defaultAccountNumber, 150000);
+//        Ensure that no other methods of our mock object are called during the test.
+        verifyNoMoreInteractions(service);
     }
 
+    @Test
+    void transactionValidations() throws Exception {
+
+        String validationErrorMessage = "Validation error.";
+
+        this.mockMvc.perform((post("/api/account/withdraw")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"amount\":0,\"accountNumber\":\"" + "\"}")
+        ))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message", equalTo(validationErrorMessage)))
+                .andExpect(jsonPath("$.errors[*].field", containsInAnyOrder("amount", "accountNumber")))
+
+                .andExpect(jsonPath("$.errors[*].message", containsInAnyOrder("Minimum allowed transaction amount is 10", "must not be empty")));
+
+        verifyNoInteractions(service);
+    }
+
+    @Test
+    void nullTransactionValidations() throws Exception {
+
+        this.mockMvc.perform((post("/api/account/withdraw")
+                .contentType(MediaType.APPLICATION_JSON)
+        ))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(service);
+    }
 }
