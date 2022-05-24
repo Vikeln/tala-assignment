@@ -1,4 +1,4 @@
-package com.tala.account;
+package com.tala.account.utils;
 
 import com.tala.account.utils.AuditorAwareImpl;
 import org.springframework.context.annotation.Bean;
